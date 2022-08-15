@@ -1,0 +1,45 @@
+<h1 id="we-should-be-using-git-notes-a-lot">We should be using git notes (a lot)</h1>
+
+<p><a href="https://git-scm.com/docs/git-notes"><code class="language-plaintext highlighter-rouge">git notes</code></a> is an occassionally discussed git feature you may have heard of in the contexts of <a href="https://dev.to/leehambley/effortlessly-maintain-a-high-quality-change-log-with-git-notes-4bm5">changelog maintainence</a> or CI metadata tracking.
+Notes are a simple mechanism for adding arbitrary metadata to a git object such as a commit or file version.
+As the docs say, “a typical use of notes is to supplement a commit message without changing the commit itself:”</p>
+<div class="language-bash highlighter-rouge"><div class="highlight"><pre class="highlight"><code>git notes append <span class="nt">-m</span> <span class="s1">'leaving hard stuff for later'</span>
+git notes <span class="nt">--ref</span><span class="o">=</span>release_testing add HEAD@<span class="o">{</span>5<span class="o">}</span> <span class="nt">-m</span> <span class="s2">"tested on </span><span class="si">$(</span><span class="nb">date</span><span class="si">)</span><span class="s2"> by </span><span class="si">$(</span><span class="nb">users</span><span class="si">)</span><span class="s2">"</span>
+</code></pre></div></div>
+
+<p>Notes are not frequently used, either by end users or tooling.
+If you add a note to your commit, you will see it in your <code class="language-plaintext highlighter-rouge">git log</code>,
+but not in your <a href="https://github.com/gitkraken/vscode-gitlens/wiki/Custom-Formatting#commit-tokens">VSCode GitLens formatting options</a>, or much other tooling.
+Most tools are fairly commit message centric.</p>
+
+<p>This is really too bad, because notes are a rich mechanism for in-repo communication.
+Notes are:</p>
+
+<p><strong>1. Editable post-commit</strong><br />
+We usually have to choose between doing pre-merge <a href="https://about.gitlab.com/blog/2018/06/07/keeping-git-commit-history-clean/">history surgery</a> and having useless commit messages.
+With notes, this is a non-issue.</p>
+
+<p><strong>2. Namespaced</strong><br />
+The default notes namespace is <code class="language-plaintext highlighter-rouge">refs/notes/commits</code>, but this can be changed with <code class="language-plaintext highlighter-rouge">notes --ref=changelog</code>.
+This means one can have different namespaces for changelogs, implementation notes, etc.</p>
+
+<p><strong>3. Granular</strong><br />
+A note can be attached to any object, not just commits.
+So, instead of rebasing to split apart unrelated files in a commit,
+one could just add a note to each file version object.</p>
+
+<p><strong>4. Flexible and extensible</strong><br />
+Notes can be images or other binary formats.
+For example, a custom note format could be used to add implementation comments on a per-line basis,
+without cluttering the actual codebase.</p>
+
+<p>With such a powerful tool on-hand, it is a shame that we’re still stuck in discussions like
+“do we mangle history or have bad commit messages,”
+and “is this comment about implementation <em>really</em> worth adding when it might get outdated?”</p>
+
+<h3 id="a-first-step">A first step</h3>
+
+<p>Of these features, I think the biggest bang for the buck would be the ability to “virtually” squash commits in the log.
+A barebones implementation would consist of a wrappers around <code class="language-plaintext highlighter-rouge">log</code> and <code class="language-plaintext highlighter-rouge">blame</code> for prioritizing and combining notes in the output,
+as well as maybe some convenience helper functions for creating them, and a way to backfill notes from PR content.</p>
+
